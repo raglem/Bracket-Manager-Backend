@@ -32,7 +32,7 @@ public class AuthController {
         AuthDTO authDTO = authService.register(authRequestDTO.getUsername(), authRequestDTO.getPassword());
 
         // Build the cookie and attach it to the response
-        String token = authService.generateTokenForUser(authDTO.getUser());
+        String token = authService.generateTokenForUser(authDTO.getUser().getId());
         ResponseCookie cookie = authService.createAuthCookie(token, jwtConfig.getExpiration());
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -44,7 +44,7 @@ public class AuthController {
         AuthDTO authDTO = authService.login(authRequestDTO.getUsername(), authRequestDTO.getPassword());
 
         // Build the cookie and attach it to the response
-        String token = authService.generateTokenForUser(authDTO.getUser());
+        String token = authService.generateTokenForUser(authDTO.getUser().getId());
         ResponseCookie cookie = authService.createAuthCookie(token, jwtConfig.getExpiration());
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -57,25 +57,6 @@ public class AuthController {
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/oauth/success")
-    public ResponseEntity<?> oauthSuccess(@AuthenticationPrincipal OAuth2User oAuth2User, HttpServletResponse response, Principal principal) {
-        // Extract user info
-        String oauthId = oAuth2User.getName();
-        String name = oAuth2User.getAttribute("given_name");
-        String email = oAuth2User.getAttribute("email");
-        // for now, only Google OAuth is supported
-        OAuthProviderEnum provider = OAuthProviderEnum.GOOGLE;
-
-        AuthDTO authDTO = authService.oAuthLoginOrRegister(oauthId, name, email, provider);
-
-        // Build the cookie and attach it to the response
-        String token = authService.generateTokenForOAuthUser((OAuth2User) principal);
-        ResponseCookie cookie = authService.createAuthCookie(token, jwtConfig.getExpiration());
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok(authDTO);
     }
 
     @GetMapping("/me")

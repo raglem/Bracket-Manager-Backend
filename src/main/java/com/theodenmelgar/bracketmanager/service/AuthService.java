@@ -67,9 +67,10 @@ public class AuthService {
     }
 
     public AuthDTO oAuthLoginOrRegister(String oauthId, String name, String email, OAuthProviderEnum provider){
+
         // Check if there is a corresponding existing OAuthUser
-        if (oAuthRepository.findById(oauthId).isPresent()) {
-            OAuthUser oAuthUser = oAuthRepository.findById(oauthId).get();
+        if (oAuthRepository.findByProviderAndOAuthId(provider, oauthId).isPresent()) {
+            OAuthUser oAuthUser = oAuthRepository.findByProviderAndOAuthId(provider, oauthId).get();
             User user = oAuthUser.getUser();
             return new AuthDTO("Login", user, oAuthUser);
         }
@@ -77,18 +78,19 @@ public class AuthService {
         // A new OAuthUser and User entity must be created
         else {
             OAuthUser oAuthUser = new OAuthUser();
+            oAuthUser.setoAuthId(oauthId);
             oAuthUser.setName(name);
             oAuthUser.setEmail(email);
             oAuthRepository.save(oAuthUser);
 
             User user = new User();
+            String uniqueUsername = name;
 
             // Username must be unique
-            while(userRepository.findByUsername(user.getUsername()).isPresent()){
-                name = user.getUsername();
-                name += (int)(Math.random() * 10);
+            while(userRepository.findByUsername(uniqueUsername).isPresent()){
+                uniqueUsername += (int)(Math.random() * 10);
             }
-            user.setUsername(name);
+            user.setUsername(uniqueUsername);
             user.setEmail(email);
             user.setOAuthUser(oAuthUser);
             userRepository.save(user);
@@ -97,13 +99,8 @@ public class AuthService {
         }
     }
 
-    public String generateTokenForUser(UserDTO user) {
-        return jwtProvider.createToken(user.getUsername());
-    }
-
-    public String generateTokenForOAuthUser(OAuth2User principal) {
-        String email = principal.getAttribute("email");
-        return jwtProvider.createToken(email);
+    public String generateTokenForUser(Long userId) {
+        return jwtProvider.createToken(userId.toString());
     }
 
     public ResponseCookie createAuthCookie(String value, long maxAge){

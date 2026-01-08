@@ -45,13 +45,12 @@ public class JwtProvider {
     /**
      * Validates the token and retrieves the username
      */
-    public String getUsernameFromToken(String token) {
+    public String getIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
         return claims.getSubject();
     }
 

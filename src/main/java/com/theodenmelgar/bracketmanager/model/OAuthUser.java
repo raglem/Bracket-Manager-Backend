@@ -7,12 +7,15 @@ import org.springframework.web.bind.annotation.Mapping;
 @Entity
 public class OAuthUser {
     @Id
-    private String id; // actual id provided by the OAuth client
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String oAuthId; // actual id provided by the OAuth client
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -21,12 +24,20 @@ public class OAuthUser {
     @OneToOne(mappedBy = "oAuthUser")
     private User user;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getoAuthId() {
+        return oAuthId;
+    }
+
+    public void setoAuthId(String oAuthId) {
+        this.oAuthId = oAuthId;
     }
 
     public String getEmail() {

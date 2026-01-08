@@ -38,14 +38,13 @@ public class JwtFilter extends OncePerRequestFilter {
             for (Cookie cookie : request.getCookies()) {
                 if ("AUTH-TOKEN".equals(cookie.getName())) {
                     token = cookie.getValue();
-                    System.out.println(token);
                 }
             }
         }
 
         if (token != null && jwtProvider.validateToken(token)) {
-            String username = jwtProvider.getUsernameFromToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            String id = jwtProvider.getIdFromToken(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(id);
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
