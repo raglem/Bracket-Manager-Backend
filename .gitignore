@@ -1,3 +1,7 @@
+### Secrets ###
+application.yml
+
+.DS_Store
 HELP.md
 .gradle
 build/

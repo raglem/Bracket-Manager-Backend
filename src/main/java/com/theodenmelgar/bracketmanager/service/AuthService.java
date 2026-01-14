@@ -5,6 +5,7 @@ import com.theodenmelgar.bracketmanager.dto.auth.AuthDTO;
 import com.theodenmelgar.bracketmanager.dto.auth.EditUserRequestDTO;
 import com.theodenmelgar.bracketmanager.dto.auth.PasswordResetRequestDTO;
 import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
+import com.theodenmelgar.bracketmanager.exception.user.*;
 import com.theodenmelgar.bracketmanager.model.OAuthUser;
 import com.theodenmelgar.bracketmanager.model.User;
 import com.theodenmelgar.bracketmanager.repository.OAuthUserRepository;
@@ -38,7 +39,7 @@ public class AuthService {
 
         // Check if the email has been taken
         if (userRepository.findByUsername(username).isPresent()){
-            throw new IllegalStateException("Username already taken");
+            throw new UsernameAlreadyTakenException(username);
         }
         else {
             User newUser = new User();
@@ -57,10 +58,10 @@ public class AuthService {
 
         // Authenticate the user
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(InvalidUserCredentialsException::new);
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidUserCredentialsException();
         }
 
         // Return the AuthDTO with the user's current details
@@ -102,12 +103,11 @@ public class AuthService {
 
     public void resetPassword(Long userId, PasswordResetRequestDTO resetDTO){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Verify the user with their old password before proceeding
         if (!passwordEncoder.matches(resetDTO.getOldPassword(), user.getPassword())) {
-            // TODO: Throw an error if the passwords don't match
-            return;
+            throw new WrongPasswordException();
         }
 
         user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
@@ -116,7 +116,17 @@ public class AuthService {
 
     public void editUser(Long userId, EditUserRequestDTO editUserDTO) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        String username = editUserDTO.getUsername();
+        String email = editUserDTO.getEmail();
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new UsernameAlreadyTakenException(username);
+        }
+        if (!email.isEmpty() && userRepository.findByEmail(email).isPresent()) {
+            throw new EmailAlreadyTakenException(email);
+        }
 
         user.setUsername(editUserDTO.getUsername());
         user.setEmail(editUserDTO.getEmail());

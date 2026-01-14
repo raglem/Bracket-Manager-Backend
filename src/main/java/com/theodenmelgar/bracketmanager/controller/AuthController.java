@@ -2,9 +2,12 @@ package com.theodenmelgar.bracketmanager.controller;
 
 import com.theodenmelgar.bracketmanager.config.JwtConfig;
 import com.theodenmelgar.bracketmanager.dto.auth.*;
+import com.theodenmelgar.bracketmanager.exception.ErrorResponse;
+import com.theodenmelgar.bracketmanager.exception.user.*;
 import com.theodenmelgar.bracketmanager.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -74,6 +77,36 @@ public class AuthController {
     @GetMapping("/me")
     public OAuth2User me(@AuthenticationPrincipal OAuth2User user) {
         return user;
+    }
+
+    @ExceptionHandler(value = InvalidUserCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleInvalidUserCredentialsException(InvalidUserCredentialsException ex) {
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(value = UsernameAlreadyTakenException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleUsernameAlreadyTakenException(UsernameAlreadyTakenException ex) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(value = EmailAlreadyTakenException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleEmailAlreadyTakenException(EmailAlreadyTakenException ex) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(value = UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleUserNotFoundException(UserNotFoundException ex){
+        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(value = WrongPasswordException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleWrongPasswordException(WrongPasswordException ex){
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
     }
 }
 
