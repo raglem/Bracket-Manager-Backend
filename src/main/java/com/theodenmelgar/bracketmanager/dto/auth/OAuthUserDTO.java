@@ -1,23 +1,23 @@
 package com.theodenmelgar.bracketmanager.dto.auth;
 
-import com.theodenmelgar.bracketmanager.enums.OAuthProviderEnum;
+import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import com.theodenmelgar.bracketmanager.model.OAuthUser;
 
 public class OAuthUserDTO {
     private Long id;
-    private String oAuthID;
+    private String oAuthProviderId;
     private String name;
     private String email;
-    private OAuthProviderEnum provider;
+    private String provider;
 
     public OAuthUserDTO() {}
 
     public OAuthUserDTO(OAuthUser user) {
         this.id = user.getId();
-        this.oAuthID = user.getoAuthId();
+        this.oAuthProviderId = user.getoAuthProviderId();
         this.name = user.getName();
         this.email = user.getEmail();
-        this.provider = user.getProvider();
+        this.provider = user.getProvider().getDisplayName();
     }
 
     public Long getId() {
@@ -28,12 +28,12 @@ public class OAuthUserDTO {
         this.id = id;
     }
 
-    public String getoAuthID() {
-        return oAuthID;
+    public String getoAuthProviderId() {
+        return oAuthProviderId;
     }
 
-    public void setoAuthID(String oAuthID) {
-        this.oAuthID = oAuthID;
+    public void setoAuthProviderId(String oAuthProviderId) {
+        this.oAuthProviderId = oAuthProviderId;
     }
 
     public String getEmail() {
@@ -52,11 +52,11 @@ public class OAuthUserDTO {
         this.name = name;
     }
 
-    public OAuthProviderEnum getProvider() {
+    public String getProvider() {
         return provider;
     }
 
-    public void setProvider(OAuthProviderEnum provider) {
-        this.provider = provider;
+    public void setProvider(LoginMethodEnum provider) {
+        this.provider = provider.getDisplayName();
     }
 }

@@ -2,32 +2,32 @@ package com.theodenmelgar.bracketmanager.service;
 
 import com.theodenmelgar.bracketmanager.config.CookieConfig;
 import com.theodenmelgar.bracketmanager.dto.auth.AuthDTO;
-import com.theodenmelgar.bracketmanager.dto.auth.UserDTO;
-import com.theodenmelgar.bracketmanager.enums.OAuthProviderEnum;
+import com.theodenmelgar.bracketmanager.dto.auth.EditUserRequestDTO;
+import com.theodenmelgar.bracketmanager.dto.auth.PasswordResetRequestDTO;
+import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import com.theodenmelgar.bracketmanager.model.OAuthUser;
 import com.theodenmelgar.bracketmanager.model.User;
-import com.theodenmelgar.bracketmanager.repository.OAuthRepository;
+import com.theodenmelgar.bracketmanager.repository.OAuthUserRepository;
 import com.theodenmelgar.bracketmanager.repository.UserRepository;
 import com.theodenmelgar.bracketmanager.security.JwtProvider;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    private final OAuthRepository oAuthRepository;
+    private final OAuthUserRepository oAuthUserRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final CookieConfig cookieConfig;
 
     public AuthService(
-            OAuthRepository oAuthRepository, UserRepository userRepository,
+            OAuthUserRepository oAuthUserRepository, UserRepository userRepository,
             PasswordEncoder passwordEncoder, JwtProvider jwtProvider,
             CookieConfig cookieConfig
     ) {
-        this.oAuthRepository = oAuthRepository;
+        this.oAuthUserRepository = oAuthUserRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
@@ -43,6 +43,7 @@ public class AuthService {
         else {
             User newUser = new User();
             newUser.setUsername(username);
+            newUser.setLoginMethod(LoginMethodEnum.REGULAR);
 
             // Hash password
             newUser.setPassword(passwordEncoder.encode(password));
@@ -66,11 +67,11 @@ public class AuthService {
         return new AuthDTO("Login", user, null);
     }
 
-    public AuthDTO oAuthLoginOrRegister(String oauthId, String name, String email, OAuthProviderEnum provider){
+    public AuthDTO oAuthLoginOrRegister(String oauthId, String name, String email, LoginMethodEnum provider){
 
         // Check if there is a corresponding existing OAuthUser
-        if (oAuthRepository.findByProviderAndOAuthId(provider, oauthId).isPresent()) {
-            OAuthUser oAuthUser = oAuthRepository.findByProviderAndOAuthId(provider, oauthId).get();
+        if (oAuthUserRepository.findByProviderAndOAuthProviderId(provider, oauthId).isPresent()) {
+            OAuthUser oAuthUser = oAuthUserRepository.findByProviderAndOAuthProviderId(provider, oauthId).get();
             User user = oAuthUser.getUser();
             return new AuthDTO("Login", user, oAuthUser);
         }
@@ -78,10 +79,10 @@ public class AuthService {
         // A new OAuthUser and User entity must be created
         else {
             OAuthUser oAuthUser = new OAuthUser();
-            oAuthUser.setoAuthId(oauthId);
+            oAuthUser.setoAuthProviderId(oauthId);
             oAuthUser.setName(name);
             oAuthUser.setEmail(email);
-            oAuthRepository.save(oAuthUser);
+            oAuthUserRepository.save(oAuthUser);
 
             User user = new User();
             String uniqueUsername = name;
@@ -99,8 +100,32 @@ public class AuthService {
         }
     }
 
+    public void resetPassword(Long userId, PasswordResetRequestDTO resetDTO){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify the user with their old password before proceeding
+        if (!passwordEncoder.matches(resetDTO.getOldPassword(), user.getPassword())) {
+            // TODO: Throw an error if the passwords don't match
+            return;
+        }
+
+        user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    public void editUser(Long userId, EditUserRequestDTO editUserDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setUsername(editUserDTO.getUsername());
+        user.setEmail(editUserDTO.getEmail());
+
+        userRepository.save(user);
+    }
+
     public String generateTokenForUser(Long userId) {
-        return jwtProvider.createToken(userId.toString());
+        return jwtProvider.createToken(userId);
     }
 
     public ResponseCookie createAuthCookie(String value, long maxAge){

@@ -1,6 +1,8 @@
 package com.theodenmelgar.bracketmanager.model;
 
+import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +17,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
     private String password;
+
+    @NotNull
+    private LoginMethodEnum loginMethod = LoginMethodEnum.REGULAR;
 
     // Add custom fields later
 
@@ -53,6 +58,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public LoginMethodEnum getLoginMethod() {
+        return loginMethod;
+    }
+
+    public void setLoginMethod(LoginMethodEnum loginMethod) {
+        this.loginMethod = loginMethod;
     }
 
     public OAuthUser getOAuthUser() {

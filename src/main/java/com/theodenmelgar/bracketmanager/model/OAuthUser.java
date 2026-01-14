@@ -1,8 +1,8 @@
 package com.theodenmelgar.bracketmanager.model;
 
-import com.theodenmelgar.bracketmanager.enums.OAuthProviderEnum;
+import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import jakarta.persistence.*;
-import org.springframework.web.bind.annotation.Mapping;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class OAuthUser {
@@ -10,7 +10,7 @@ public class OAuthUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String oAuthId; // actual id provided by the OAuth client
+    private String oAuthProviderId; // actual id provided by the OAuth client
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -19,7 +19,8 @@ public class OAuthUser {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private OAuthProviderEnum provider = OAuthProviderEnum.GOOGLE;
+    @NotNull
+    private LoginMethodEnum provider = LoginMethodEnum.GOOGLE;
 
     @OneToOne(mappedBy = "oAuthUser")
     private User user;
@@ -32,12 +33,12 @@ public class OAuthUser {
         this.id = id;
     }
 
-    public String getoAuthId() {
-        return oAuthId;
+    public String getoAuthProviderId() {
+        return oAuthProviderId;
     }
 
-    public void setoAuthId(String oAuthId) {
-        this.oAuthId = oAuthId;
+    public void setoAuthProviderId(String oAuthProviderId) {
+        this.oAuthProviderId = oAuthProviderId;
     }
 
     public String getEmail() {
@@ -56,11 +57,11 @@ public class OAuthUser {
         this.name = name;
     }
 
-    public OAuthProviderEnum getProvider() {
+    public LoginMethodEnum getProvider() {
         return provider;
     }
 
-    public void setProvider(OAuthProviderEnum provider) {
+    public void setProvider(LoginMethodEnum provider) {
         this.provider = provider;
     }
 
@@ -70,5 +71,15 @@ public class OAuthUser {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void preventRegularLoginMethod() {
+        if (provider == LoginMethodEnum.REGULAR) {
+            throw new IllegalStateException(
+                    "REGULAR login method is not allowed as a provider for OAuth entity"
+            );
+        }
     }
 }

@@ -28,14 +28,14 @@ public class JwtProvider {
     }
 
     /**
-     * Generates a token based on the username or email
+     * Generates a token based on the user id
      */
-    public String createToken(String username) {
+    public String createToken(Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)

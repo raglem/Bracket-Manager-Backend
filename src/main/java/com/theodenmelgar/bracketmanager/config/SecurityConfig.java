@@ -1,7 +1,7 @@
 package com.theodenmelgar.bracketmanager.config;
 
 import com.theodenmelgar.bracketmanager.dto.auth.AuthDTO;
-import com.theodenmelgar.bracketmanager.enums.OAuthProviderEnum;
+import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import com.theodenmelgar.bracketmanager.service.AuthService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +51,10 @@ public class SecurityConfig {
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/**", "/error").permitAll()
+                    .requestMatchers(
+                        "/auth/register", "/auth/login",
+                        "/auth/logout", "/error"
+                    ).permitAll()
                     .anyRequest().authenticated()
             )
             .oauth2Login(oauth -> oauth
@@ -94,7 +97,7 @@ public class SecurityConfig {
             String name = oAuth2User.getAttribute("given_name");
             String email = oAuth2User.getAttribute("email");
             // for now, only Google OAuth is supported
-            OAuthProviderEnum provider = OAuthProviderEnum.GOOGLE;
+            LoginMethodEnum provider = LoginMethodEnum.GOOGLE;
 
             AuthDTO authDTO = authService.oAuthLoginOrRegister(oauthId, name, email, provider);
 

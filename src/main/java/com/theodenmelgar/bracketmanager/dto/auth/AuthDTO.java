@@ -5,7 +5,6 @@ import com.theodenmelgar.bracketmanager.model.User;
 
 public class AuthDTO {
     private String authAction; // "Login" or "Register"
-    private boolean usesOAuth = false;
     private UserDTO user;
     private OAuthUserDTO oAuthUser;
 
@@ -16,7 +15,6 @@ public class AuthDTO {
         this.user = new UserDTO(user);
         if(oAuthUser != null) {
             this.oAuthUser = new OAuthUserDTO(oAuthUser);
-            this.usesOAuth = true;
         }
     }
 
@@ -34,14 +32,6 @@ public class AuthDTO {
 
     public void setUser(UserDTO user) {
         this.user = user;
-    }
-
-    public boolean isUsesOAuth() {
-        return usesOAuth;
-    }
-
-    public void setUsesOAuth(boolean usesOAuth) {
-        this.usesOAuth = usesOAuth;
     }
 
     public OAuthUserDTO getoAuthUser() {

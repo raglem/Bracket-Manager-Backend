@@ -1,20 +1,16 @@
 package com.theodenmelgar.bracketmanager.controller;
 
 import com.theodenmelgar.bracketmanager.config.JwtConfig;
-import com.theodenmelgar.bracketmanager.dto.auth.AuthDTO;
-import com.theodenmelgar.bracketmanager.dto.auth.LoginRequestDTO;
-import com.theodenmelgar.bracketmanager.dto.auth.RegisterRequestDTO;
-import com.theodenmelgar.bracketmanager.enums.OAuthProviderEnum;
+import com.theodenmelgar.bracketmanager.dto.auth.*;
 import com.theodenmelgar.bracketmanager.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/auth")
@@ -57,6 +53,22 @@ public class AuthController {
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetRequestDTO resetDTO,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        authService.resetPassword(userId, resetDTO);
+        return ResponseEntity.ok("Password successfully reset");
+    }
+
+    @PutMapping("/edit-user")
+    public ResponseEntity<String> editUser(@RequestBody EditUserRequestDTO editUserDTO,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        authService.editUser(userId, editUserDTO);
+        return ResponseEntity.ok("User details successfully updated");
     }
 
     @GetMapping("/me")
