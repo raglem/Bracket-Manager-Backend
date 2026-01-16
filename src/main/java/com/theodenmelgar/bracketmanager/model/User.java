@@ -21,7 +21,7 @@ public class User {
     @NotNull
     private LoginMethodEnum loginMethod = LoginMethodEnum.REGULAR;
 
-    // Add custom fields later
+    private String profileImageKey;
 
     @OneToOne
     @JoinColumn(name = "oauthUser_id", updatable = false)
@@ -66,6 +66,14 @@ public class User {
 
     public void setLoginMethod(LoginMethodEnum loginMethod) {
         this.loginMethod = loginMethod;
+    }
+
+    public String getProfileImageKey() {
+        return profileImageKey;
+    }
+
+    public void setProfileImageKey(String profileImageKey) {
+        this.profileImageKey = profileImageKey;
     }
 
     public OAuthUser getOAuthUser() {
