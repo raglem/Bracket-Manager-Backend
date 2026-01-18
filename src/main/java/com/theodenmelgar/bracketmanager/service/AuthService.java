@@ -1,9 +1,7 @@
 package com.theodenmelgar.bracketmanager.service;
 
 import com.theodenmelgar.bracketmanager.config.CookieConfig;
-import com.theodenmelgar.bracketmanager.dto.auth.AuthDTO;
-import com.theodenmelgar.bracketmanager.dto.auth.EditUserRequestDTO;
-import com.theodenmelgar.bracketmanager.dto.auth.PasswordResetRequestDTO;
+import com.theodenmelgar.bracketmanager.dto.auth.*;
 import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import com.theodenmelgar.bracketmanager.exception.user.*;
 import com.theodenmelgar.bracketmanager.model.OAuthUser;
@@ -22,17 +20,19 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final CookieConfig cookieConfig;
+    private final UserService userService;
 
     public AuthService(
             OAuthUserRepository oAuthUserRepository, UserRepository userRepository,
             PasswordEncoder passwordEncoder, JwtProvider jwtProvider,
-            CookieConfig cookieConfig
+            CookieConfig cookieConfig, UserService userService
     ) {
         this.oAuthUserRepository = oAuthUserRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtProvider = jwtProvider;
         this.cookieConfig = cookieConfig;
+        this.userService = userService;
     }
 
     public AuthDTO register(String username, String password) {
@@ -50,7 +50,8 @@ public class AuthService {
             newUser.setPassword(passwordEncoder.encode(password));
             userRepository.save(newUser);
 
-            return new AuthDTO("Register", newUser, null);
+            UserDTO newUserDTO = userService.constructUserDTO(newUser);
+            return new AuthDTO("Register", newUserDTO, null);
         }
     }
 
@@ -65,7 +66,8 @@ public class AuthService {
         }
 
         // Return the AuthDTO with the user's current details
-        return new AuthDTO("Login", user, null);
+        UserDTO userDTO = userService.constructUserDTO(user);
+        return new AuthDTO("Login", userDTO, null);
     }
 
     public AuthDTO oAuthLoginOrRegister(String oauthId, String name, String email, LoginMethodEnum provider){
@@ -74,7 +76,11 @@ public class AuthService {
         if (oAuthUserRepository.findByProviderAndOAuthProviderId(provider, oauthId).isPresent()) {
             OAuthUser oAuthUser = oAuthUserRepository.findByProviderAndOAuthProviderId(provider, oauthId).get();
             User user = oAuthUser.getUser();
-            return new AuthDTO("Login", user, oAuthUser);
+
+            // Construct DTOs for response
+            UserDTO userDTO = userService.constructUserDTO(user);
+            OAuthUserDTO oAuthDTO = new OAuthUserDTO(oAuthUser);
+            return new AuthDTO("Login", userDTO, oAuthDTO);
         }
         // If there is no OAuthUser, we handle registration
         // A new OAuthUser and User entity must be created
@@ -97,7 +103,10 @@ public class AuthService {
             user.setOAuthUser(oAuthUser);
             userRepository.save(user);
 
-            return new AuthDTO("Register", user, oAuthUser);
+            // Construct DTOs for response
+            UserDTO userDTO = userService.constructUserDTO(user);
+            OAuthUserDTO oAuthDTO = new OAuthUserDTO(oAuthUser);
+            return new AuthDTO("Login", userDTO, oAuthDTO);
         }
     }
 

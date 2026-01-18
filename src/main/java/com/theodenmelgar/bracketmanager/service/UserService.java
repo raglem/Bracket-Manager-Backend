@@ -1,6 +1,7 @@
 package com.theodenmelgar.bracketmanager.service;
 
 import com.theodenmelgar.bracketmanager.config.S3Config;
+import com.theodenmelgar.bracketmanager.dto.auth.UserDTO;
 import com.theodenmelgar.bracketmanager.exception.BadRequestException;
 import com.theodenmelgar.bracketmanager.exception.FileStorageException;
 import com.theodenmelgar.bracketmanager.exception.user.UserNotFoundException;
@@ -68,5 +69,35 @@ public class UserService {
         user.setProfileImageKey(key);
         userRepository.save(user);
         return s3Config.getPublicUrl(key);
+    }
+
+    public void removeProfileImage (Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        String key = user.getProfileImageKey();
+
+        if (key != null && !key.isEmpty()){
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
+                            .bucket(s3Config.getBucketName())
+                            .key(key)
+                            .build()
+            );
+        }
+
+        user.setProfileImageKey("");
+        userRepository.save(user);
+    }
+
+    public UserDTO constructUserDTO(User user) {
+        UserDTO userDTO = new UserDTO(user);
+        // Manually compute the image URL (the user object only stores the key)
+        userDTO.setProfileImageURL(getImageURL(user));
+        return userDTO;
+    }
+
+    public String getImageURL(User user) {
+        return s3Config.getPublicUrl(user.getProfileImageKey());
     }
 }

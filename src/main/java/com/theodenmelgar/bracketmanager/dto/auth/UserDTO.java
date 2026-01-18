@@ -1,12 +1,12 @@
 package com.theodenmelgar.bracketmanager.dto.auth;
 
-import com.theodenmelgar.bracketmanager.enums.LoginMethodEnum;
 import com.theodenmelgar.bracketmanager.model.User;
 
 public class UserDTO {
     private Long id;
     private String username;
     private String email;
+    private String profileImageURL;
     private String loginMethod;
 
     public UserDTO(){}
@@ -40,6 +40,14 @@ public class UserDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getProfileImageURL() {
+        return profileImageURL;
+    }
+
+    public void setProfileImageURL(String profileImageURL) {
+        this.profileImageURL = profileImageURL;
     }
 
     public String getLoginMethod() {

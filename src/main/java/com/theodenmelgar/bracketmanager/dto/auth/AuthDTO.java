@@ -10,12 +10,9 @@ public class AuthDTO {
 
     public AuthDTO() {}
 
-    public AuthDTO(String authAction, User user, OAuthUser oAuthUser) {
-        this.authAction = authAction;
-        this.user = new UserDTO(user);
-        if(oAuthUser != null) {
-            this.oAuthUser = new OAuthUserDTO(oAuthUser);
-        }
+    public AuthDTO(String authAction, UserDTO user, OAuthUserDTO oAuthUser){
+        this.user = user;
+        this.oAuthUser = oAuthUser;
     }
 
     public String getAuthAction() {
