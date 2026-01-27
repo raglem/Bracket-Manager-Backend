@@ -93,7 +93,11 @@ public class UserService {
     public UserDTO constructUserDTO(User user) {
         UserDTO userDTO = new UserDTO(user);
         // Manually compute the image URL (the user object only stores the key)
-        userDTO.setProfileImageURL(getImageURL(user));
+        if (user.getProfileImageKey() != null) {
+            userDTO.setProfileImageURL(getImageURL(user));
+        }
+
+
         return userDTO;
     }
 
